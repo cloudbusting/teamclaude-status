@@ -1,0 +1,115 @@
+{
+  "name": "teamclaude-status",
+  "displayName": "TeamClaude Status",
+  "description": "Live usage monitoring for TeamClaude's linked Claude Max accounts: a status-bar quota chip and a click-through usage panel.",
+  "version": "0.1.0",
+  "publisher": "cloudbusting",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "teamclaude",
+    "claude",
+    "usage",
+    "status bar",
+    "quota"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "teamclaude.openPanel",
+        "title": "TeamClaude: Show Usage"
+      },
+      {
+        "command": "teamclaude.refresh",
+        "title": "TeamClaude: Refresh Now"
+      },
+      {
+        "command": "teamclaude.setApiKey",
+        "title": "TeamClaude: Set API Key…"
+      },
+      {
+        "command": "teamclaude.clearApiKey",
+        "title": "TeamClaude: Clear Stored API Key"
+      },
+      {
+        "command": "teamclaude.showLogs",
+        "title": "TeamClaude: Show Logs"
+      },
+      {
+        "command": "teamclaude.diagnostics",
+        "title": "TeamClaude: Run Diagnostics"
+      }
+    ],
+    "configuration": {
+      "title": "TeamClaude Status",
+      "properties": {
+        "teamclaude.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Base URL of the TeamClaude gateway (e.g. http://teamclaude-gateway:3456). Leave empty to auto-detect from teamclaude.json when present."
+        },
+        "teamclaude.configPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to teamclaude.json. Leave empty to use $TEAMCLAUDE_CONFIG or the standard ~/.config/teamclaude/teamclaude.json location."
+        },
+        "teamclaude.pollIntervalSeconds": {
+          "type": "number",
+          "default": 20,
+          "minimum": 5,
+          "description": "How often to poll the TeamClaude gateway while only the status bar is visible."
+        },
+        "teamclaude.warningThreshold": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Usage fraction (0-1) at which the status bar switches to a warning color."
+        },
+        "teamclaude.criticalThreshold": {
+          "type": "number",
+          "default": 0.9,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Usage fraction (0-1) at which the status bar switches to a critical/error color. Defaults to the gateway's own switchThreshold when known."
+        },
+        "teamclaude.maxStatusBarAccounts": {
+          "type": "number",
+          "default": 8,
+          "minimum": 1,
+          "description": "Maximum number of account glyphs shown inline in the status bar before clipping to an ellipsis. The tooltip and popup always show every account."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.js --production",
+    "watch": "node esbuild.js --watch",
+    "compile": "tsc --noEmit -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudbusting/teamclaude-status.git"
+  }
+}

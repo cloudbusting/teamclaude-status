@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { AccountStatus, ConnectionState } from './api/types';
+import type { AccountStatus, ConnectionState, QuotaWindow } from './api/types';
 
 const SPARKLINE_GLYPHS = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
 const CLIP_GLYPH = '⋯';
@@ -15,6 +15,31 @@ function glyphFor(percent: number): string {
 
 function pct(n: number): string {
   return `${Math.round(n * 100)}%`;
+}
+
+function formatCooldown(resetsAt: string, includeDays: boolean): string {
+  const diffMs = new Date(resetsAt).getTime() - Date.now();
+  if (diffMs <= 0) return '0m';
+  const totalMins = Math.ceil(diffMs / 60000);
+  let mins = totalMins % 60;
+  let hours = Math.floor(totalMins / 60);
+  let days = 0;
+  if (includeDays) {
+    days = Math.floor(hours / 24);
+    hours = hours % 24;
+  }
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (mins > 0 || parts.length === 0) parts.push(`${mins}m`);
+  return parts.join(' ');
+}
+
+function windowValue(window: QuotaWindow, includeDays: boolean): string {
+  if (window.percent >= 1 && window.resetsAt) {
+    return formatCooldown(window.resetsAt, includeDays);
+  }
+  return pct(window.percent);
 }
 
 function sortByUrgency(accounts: AccountStatus[]): AccountStatus[] {
@@ -85,9 +110,9 @@ function buildTooltip(status: ConnectionState & { kind: 'ok' }): vscode.Markdown
   md.appendMarkdown('|---|---|---|---|\n');
   for (const account of sortForDisplay(accounts)) {
     const name = account.name || account.id;
-    md.appendMarkdown(
-      `| ${name} | ${pct(account.quota.unified5h.percent)} | ${pct(account.quota.unified7d.percent)} | ${statusBadge(account)} |\n`,
-    );
+    const fiveH = windowValue(account.quota.unified5h, false);
+    const sevenD = windowValue(account.quota.unified7d, true);
+    md.appendMarkdown(`| ${name} | ${fiveH} | ${sevenD} | ${statusBadge(account)} |\n`);
   }
   if (accounts.length > 1) {
     md.appendMarkdown(`| **Overall** | | **${pct(average7dPercent(accounts))}** | |\n`);

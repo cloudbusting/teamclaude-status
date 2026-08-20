@@ -2,7 +2,7 @@
   "name": "teamclaude-status",
   "displayName": "TeamClaude Status",
   "description": "Live usage monitoring for TeamClaude's linked Claude Max accounts: a status-bar quota chip and a click-through usage panel.",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "publisher": "cloudbusting",
   "license": "MIT",
   "engines": {

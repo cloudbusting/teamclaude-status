@@ -21,6 +21,14 @@ function sortByUrgency(accounts: AccountStatus[]): AccountStatus[] {
   return [...accounts].sort((a, b) => accountUrgency(b) - accountUrgency(a));
 }
 
+function currentAccount(accounts: AccountStatus[]): AccountStatus {
+  return accounts.find((a) => a.current) ?? sortByUrgency(accounts)[0];
+}
+
+function average7dPercent(accounts: AccountStatus[]): number {
+  return accounts.reduce((sum, a) => sum + a.quota.unified7d.percent, 0) / accounts.length;
+}
+
 /** Sort order shared by the tooltip and popup: current account first, then most urgent. */
 export function sortForDisplay(accounts: AccountStatus[]): AccountStatus[] {
   return [...accounts].sort((a, b) => {
@@ -36,14 +44,13 @@ function buildInlineText(accounts: AccountStatus[], maxGlyphs: number): string {
     return '$(circle-slash) No accounts';
   }
 
-  const sorted = sortByUrgency(accounts);
-  const headline = sorted[0];
-  const headlinePct = pct(accountUrgency(headline));
+  const headlinePct = pct(accountUrgency(currentAccount(accounts)));
 
   if (accounts.length === 1) {
     return `$(pulse) ${headlinePct}`;
   }
 
+  const sorted = sortByUrgency(accounts);
   let glyphs: string;
   if (accounts.length <= maxGlyphs) {
     glyphs = sorted.map((a) => glyphFor(accountUrgency(a))).join('');
@@ -52,7 +59,8 @@ function buildInlineText(accounts: AccountStatus[], maxGlyphs: number): string {
     glyphs = shown.map((a) => glyphFor(accountUrgency(a))).join('') + CLIP_GLYPH;
   }
 
-  return `$(pulse) ${headlinePct} ${glyphs}`;
+  const avgPct = pct(average7dPercent(accounts));
+  return `$(pulse) ${headlinePct} ${glyphs} ${avgPct}`;
 }
 
 function statusBadge(account: AccountStatus): string {
@@ -81,6 +89,9 @@ function buildTooltip(status: ConnectionState & { kind: 'ok' }): vscode.Markdown
       `| ${name} | ${pct(account.quota.unified5h.percent)} | ${pct(account.quota.unified7d.percent)} | ${statusBadge(account)} |\n`,
     );
   }
+  if (accounts.length > 1) {
+    md.appendMarkdown(`| **Overall** | | **${pct(average7dPercent(accounts))}** | |\n`);
+  }
   md.appendMarkdown('\n_Click to see full usage details._');
   return md;
 }
@@ -92,12 +103,12 @@ function thresholdColor(accounts: AccountStatus[]): vscode.ThemeColor | undefine
   const cfg = vscode.workspace.getConfiguration('teamclaude');
   const warning = cfg.get<number>('warningThreshold', 0.7);
   const critical = cfg.get<number>('criticalThreshold', 0.9);
-  const headlineUrgency = Math.max(...accounts.map(accountUrgency));
+  const avgUrgency = average7dPercent(accounts);
 
-  if (headlineUrgency >= critical) {
+  if (avgUrgency >= critical) {
     return new vscode.ThemeColor('statusBarItem.errorBackground');
   }
-  if (headlineUrgency >= warning) {
+  if (avgUrgency >= warning) {
     return new vscode.ThemeColor('statusBarItem.warningBackground');
   }
   return undefined;

@@ -36,6 +36,12 @@ export function buildWebviewHtml(cspSource: string): string {
     color: var(--vscode-descriptionForeground);
     padding: 24px 0;
   }
+  #overall {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  }
+  #overall .bar-label { font-weight: 600; color: var(--vscode-foreground); }
   #grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -104,6 +110,7 @@ export function buildWebviewHtml(cspSource: string): string {
 <body>
   <h1>TeamClaude usage</h1>
   <div id="server-footer"></div>
+  <div id="overall" hidden></div>
   <div id="empty" hidden>No accounts configured.</div>
   <div id="grid"></div>
 
@@ -112,6 +119,7 @@ export function buildWebviewHtml(cspSource: string): string {
     const grid = document.getElementById('grid');
     const empty = document.getElementById('empty');
     const serverFooter = document.getElementById('server-footer');
+    const overall = document.getElementById('overall');
 
     function pct(n) { return Math.round(n * 100) + '%'; }
 
@@ -226,6 +234,15 @@ export function buildWebviewHtml(cspSource: string): string {
         for (const account of accounts) {
           grid.appendChild(renderCard(account, warning, critical));
         }
+      }
+
+      overall.innerHTML = '';
+      if (accounts && accounts.length > 1) {
+        const avg7d = accounts.reduce((sum, a) => sum + a.quota.unified7d.percent, 0) / accounts.length;
+        overall.appendChild(bar('Overall', { percent: avg7d, resetsAt: null }, warning, critical));
+        overall.hidden = false;
+      } else {
+        overall.hidden = true;
       }
 
       if (server) {

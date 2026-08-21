@@ -69,19 +69,20 @@ function buildInlineText(accounts: AccountStatus[], maxGlyphs: number): string {
     return '$(circle-slash) No accounts';
   }
 
-  const headlinePct = pct(accountUrgency(currentAccount(accounts)));
+  const headlinePct = pct(currentAccount(accounts).quota.unified5h.percent);
 
   if (accounts.length === 1) {
     return `$(pulse) ${headlinePct}`;
   }
 
   const sorted = sortByUrgency(accounts);
+  const accountGlyphs = (a: AccountStatus) => `${glyphFor(a.quota.unified5h.percent)}${glyphFor(a.quota.unified7d.percent)}`;
   let glyphs: string;
   if (accounts.length <= maxGlyphs) {
-    glyphs = sorted.map((a) => glyphFor(accountUrgency(a))).join('');
+    glyphs = sorted.map(accountGlyphs).join(' ');
   } else {
     const shown = sorted.slice(0, Math.max(1, maxGlyphs - 1));
-    glyphs = shown.map((a) => glyphFor(accountUrgency(a))).join('') + CLIP_GLYPH;
+    glyphs = shown.map(accountGlyphs).join(' ') + ' ' + CLIP_GLYPH;
   }
 
   const avgPct = pct(average7dPercent(accounts));

@@ -4,6 +4,7 @@
   "description": "Live usage monitoring for TeamClaude's linked Claude Max accounts: a status-bar quota chip and a click-through usage panel.",
   "version": "0.1.8",
   "publisher": "cloudbusting",
+  "icon": "icon.png",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
@@ -106,6 +107,7 @@
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.2",
+    "ovsx": "^1.1.1",
     "typescript": "^5.9.3"
   },
   "repository": {

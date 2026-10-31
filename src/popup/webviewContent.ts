@@ -155,6 +155,16 @@ export function buildWebviewHtml(cspSource: string): string {
       return 'resets in ' + (h > 0 ? h + 'h ' : '') + m + 'm';
     }
 
+    function uptime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const d = Math.floor(mins / 1440);
+      const h = Math.floor((mins % 1440) / 60);
+      const m = mins % 60;
+      if (d > 0) return d + 'd ' + h + 'h ' + m + 'm';
+      if (h > 0) return h + 'h ' + m + 'm';
+      return m + 'm';
+    }
+
     function badge(text, cls) {
       const span = document.createElement('span');
       span.className = 'badge ' + cls;
@@ -248,7 +258,7 @@ export function buildWebviewHtml(cspSource: string): string {
       if (server) {
         const parts = [];
         if (typeof server.uptimeSeconds === 'number') {
-          parts.push('uptime ' + Math.round(server.uptimeSeconds / 60) + 'm');
+          parts.push('uptime ' + uptime(server.uptimeSeconds));
         }
         if (typeof server.sessionsActive === 'number' && typeof server.sessionsKnown === 'number') {
           parts.push(server.sessionsActive + '/' + server.sessionsKnown + ' sessions active');
